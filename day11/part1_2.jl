@@ -1,4 +1,4 @@
-cd("D:/tvxiib/autre/advent_of_code/2019/day11")
+cd("D:/tvxiib/autre/advent_of_code/2019/day9")
 
 total = 0
 f = open("input")
@@ -33,8 +33,7 @@ mutable struct Amplifier
     i # Registre d'instruction
     input
     relativeBase
-    output
-    Amplifier(code,input,output) = new(copy(code),0, input,0,output)
+    Amplifier(code,input) = new(copy(code),0, input,0)
 end
 
 # Calcule l'adresse à utiliser, après indirection
@@ -88,14 +87,12 @@ function compute(amplifier)
         elseif opCode == "02"
             memoire[adresses[3]] = string(parse(Int,memoire[adresses[1]])*parse(Int,memoire[adresses[2]]))
         elseif opCode == "03"
-            memoire[adresses[1]] = string(amplifier.input[1])
-            deleteat!(amplifier.input,1)
+            memoire[adresses[1]] = string(amplifier.input)
         elseif opCode == "04"
             println("output ",memoire[adresses[1]])
-            push!(amplifier.output, memoire[adresses[1]])
             # TODO : faire un truc propre
             amplifier.i += nbParams+1
-            #return memoire[adresses[1]]
+            return memoire[adresses[1]]
         elseif opCode == "05"
             if parse(Int,memoire[adresses[1]]) != 0
                 amplifier.i=parse(Int,memoire[adresses[2]])
@@ -126,59 +123,17 @@ function compute(amplifier)
 end
 #ampli = Amplifier(caracteres, 5)
 
-function deplacement(position, direction, orientation)
-    direction = parse(Int, direction)
-    nouvelleOrientation = (0,0)
-    if orientation == (0,1) && direction == 0
-        nouvelleOrientation = (-1,0)
-    elseif orientation == (0,1) && direction == 1
-        nouvelleOrientation = (1,0)
-    elseif orientation == (1,0) && direction == 0
-        nouvelleOrientation = (0,1)
-    elseif orientation == (1,0) && direction == 1
-        nouvelleOrientation = (0,-1)
-    elseif orientation == (0,-1) && direction == 0
-        nouvelleOrientation = (1,0)
-    elseif orientation == (0,-1) && direction == 1
-        nouvelleOrientation = (-1,0)
-    elseif orientation == (-1,0) && direction == 0
-        nouvelleOrientation = (0,-1)
-    elseif orientation == (-1,0) && direction == 1
-        nouvelleOrientation = (0,1)
-    else
-        println("Direction ou orientation inconnue ",orientation, " ", direction )
-        exit(1)
-    end
-    nouvellePosition = (position[1] + nouvelleOrientation[1], position[1] + nouvelleOrientation[2])
-    return (nouvellePosition,nouvelleOrientation)
-end
 
 function solve(memoire)
-    input = [0]
-    output = []
-    ampli = Amplifier(memoire, input, output)
-    println("input : ",ampli.input)
+    ampli = Amplifier(memoire, 2)
     out = compute(ampli)
-    position = (0,0)
-    orientation = (0,1) # Robot dirigé vers le haut
-    couleurs = Dict()
+    i = 1
     while out != "Fin"
-        compute(ampli)
-        println("Output ", output)
-        couleurAPeindre = output[1]
-        direction = output[2]
-        deleteat!(output,1)
-        deleteat!(output,1)
-
-        if position in keys(couleurs)
-            couleurs[position] = couleurAPeindre
+        out = compute(ampli)
+        i+=1
+        if i > 30
+            break
         end
-        (position, orientation) = deplacement(position, direction, orientation)
-        if !(position in keys(couleurs))
-            couleurs[position] = 0
-        end
-        push!(input, couleurs[position])
-
     end
 end
 
